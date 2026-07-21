@@ -1,0 +1,74 @@
+---
+name: Update Hermes-3 dependencies
+# Inspects 'ci/requirements.txt' and the BOUT-dev submodule commit in the Hermes-3 repo to
+# check whether new package versions and dependencies need to be added.
+# Files a PR to make the necessary changes.
+on:
+  schedule:
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-python-test-dependencies:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/boutproject/bout-spack-ci:0.1.0
+    env:
+      HERMES_DIR: .tmp/hermes
+      COMMITS_JSON: .tmp/commits.json
+
+    steps:
+
+      # Checkout BOUT-spack
+      - name: BOUT-spack checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Checkout the Hermes-3 submodules config and the dependencies commits file
+      - name: H3 sparse checkout
+        id: hermes
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          repository: oparry-ukaea/hermes-3
+          ref: master
+          path: ${{ env.HERMES_DIR }}
+          sparse-checkout: |
+            .gitmodules
+            ci/requirements.txt
+          sparse-checkout-cone-mode: false
+
+      # Python script to extract all the commit hashes to json
+      - name: Extract commit hashes
+        run: |
+          . "$SPACK_ROOT/share/spack/setup-env.sh"
+          spack-python ci/extract_commits.py --hermes-dir "$HERMES_DIR" --output "$COMMITS_JSON"
+
+      # Python script to update the Spack packages as necessary
+      - name: Update Spack packages
+        run: |
+          . "$SPACK_ROOT/share/spack/setup-env.sh"
+          spack-python ci/update_spack_packages.py --commits_file "$COMMITS_JSON"
+
+      # Cleanup temporary files
+      - name: Clean up temporary files
+        run: |
+          rm -rf "$HERMES_DIR"
+          jq . "$COMMITS_JSON"
+          rm -f "$COMMITS_JSON"
+
+      # File the PR
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: bot/update-package-versions-and_deps
+          commit-message: Update package versions and add dependencies
+          title: Update package versions and add dependencies
+          body: |
+            Add any versions and dependencies implied by submodule pointers and the ci/requirements.txt file in the Hermes-3 repo.
+          delete-branch: true
