@@ -57,6 +57,7 @@ class Hermes3(CMakePackage):
     #   version("<next_release_version>rc<date_in_YYYYMMDD>", commit="<git_hash>")
     version("1.4.2rc20260212", commit="1ee1c190742ed36470776d0bcf188aad33754bd0")
     version("1.4.2rc20260615", commit="c8aa7969ee288862a5af3201db61d932ff64b377")
+    version("1.4.2rc20260721", commit="731e64498026a1b9ca3152da73c14b8c0e78950e")
 
     variant(
         "limiter",
@@ -86,6 +87,8 @@ class Hermes3(CMakePackage):
     depends_on("fftw", type=("build", "link"))
     depends_on("mpi", type=("build", "link", "run"))
     depends_on("boutpp", type=("build", "link"))
+    depends_on("boutpp@5.2.1rc20260721:", when="@1.4.2rc20260721:")
+
     depends_on("netcdf-cxx4", type=("build", "link"))
     # Need boutdata for boutupgrader script, even when not installing xhermes
     depends_on("py-boutdata@0.3.0:", type=("run"))
