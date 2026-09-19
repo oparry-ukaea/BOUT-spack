@@ -37,6 +37,7 @@ class Boutpp(CMakePackage):
     version("5.2.1rc20260727", commit="2384555b6ad9763cddc3e99a99ed4c4c1037faa2")
 
     # Patches
+    version("5.2.1rc20260919", commit="10ec8defb901657ad1c66f95f2bf532ae6ae6099")
     patch("fix_thirdparty_cmake_v5.0.0.patch", when="@5.0.0")
     patch("fix_thirdparty_cmake_v5.1.x.patch", when="@5.1")
 
