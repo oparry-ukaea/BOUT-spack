@@ -63,6 +63,7 @@ class Boutpp(CMakePackage):
     )
     variant("cuda", default=False, description="Builds with CUDA support.")
     variant("fftw", default=True, description="Builds with FFTW support.")
+    variant("gen_field_ops", default=False, description="Generate field operators at build time.")
     variant("hypre", default=False, description="Builds with Hypre support.")
     variant("lapack", default=False, description="Builds with LAPACK support.")
     variant("metric3d", default=False, description="Enable 3D metric support.")
@@ -127,6 +128,12 @@ class Boutpp(CMakePackage):
     depends_on("py-jinja2", type=("build", "link"), when="+python")
     depends_on("py-numpy", type=("build", "link"), when="+python")
 
+    # Dependencies for generating field operators at build time
+    # Check python min version
+    depends_on("py-clang-format", type=("build", "link"), when="+gen_field_ops")
+    depends_on("py-jinja2", type=("build", "link"), when="+gen_field_ops")
+    depends_on("python@3:", type=("build", "link"), when="+gen_field_ops")
+
     # PETSc dependency
     #   Always use MPI and specify supported version range (across all BOUT versions)
     depends_on("petsc@3.7:3.23+mpi", type=("build", "link"), when="+petsc")
@@ -146,6 +153,7 @@ class Boutpp(CMakePackage):
             "BOUT_ENABLE_CALIPER": "caliper",
             "CHECK": "check",
             "BOUT_ENABLE_CUDA": "cuda",
+            "BOUT_ENABLE_GEN_FIELD_OPS": "gen_field_ops",
             "BOUT_USE_HYPRE": "hypre",
             "BOUT_USE_LAPACK": "lapack",
             "BOUT_ENABLE_METRIC_3D": "metric3d",
